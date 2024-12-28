@@ -31,3 +31,21 @@ function setupListeners(system) {
         console.error(`[${data.from}]: Error occurred: ${data.error}`);
     });
 }
+
+(async () => {
+    const systemA = new ReactiveSystem("System A");
+    const systemB = new ReactiveSystem("System B");
+
+    setupListeners(systemA);
+    setupListeners(systemB);
+
+    systemA.sendMessage(systemB, "Hello from A");
+    systemB.sendMessage(systemA, "Hello from B");
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    systemA.sendError("An error occurred in A");
+
+    console.log("\nSystem A Log:", systemA.getLog());
+    console.log("System B Log:", systemB.getLog());
+})();
