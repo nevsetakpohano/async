@@ -21,3 +21,13 @@ class ReactiveSystem extends EventEmitter {
         return this.log;
     }
 }
+
+function setupListeners(system) {
+    system.on("message", (data) => {
+        console.log(`[${data.from} -> ${data.to}]: ${data.message}`);
+    });
+
+    system.on("error", (data) => {
+        console.error(`[${data.from}]: Error occurred: ${data.error}`);
+    });
+}
