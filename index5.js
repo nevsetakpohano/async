@@ -12,6 +12,11 @@ class ReactiveSystem extends EventEmitter {
         this.emit("message", { from: this.name, to: target.name, message });
     }
 
+    sendError(error) {
+        this.log.push({ type: "error", error, timestamp: new Date() });
+        this.emit("error", { from: this.name, error });
+    }
+
     getLog() {
         return this.log;
     }
