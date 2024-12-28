@@ -1,4 +1,4 @@
-async function asyncMapWithConcurrency(array, asyncCallback, concurrency = 2, debounceTime = 0) {
+async function asyncMapWithAbort(array, asyncCallback, concurrency = 2, debounceTime = 0, signal) {
     let active = 0;
     let index = 0;
     const results = new Array(array.length).fill(null);
@@ -12,15 +12,26 @@ async function asyncMapWithConcurrency(array, asyncCallback, concurrency = 2, de
 
             (async () => {
                 const startTime = Date.now();
-                results[i] = await asyncCallback(array[i], i, array);
 
-                const elapsedTime = Date.now() - startTime;
-                if (debounceTime > elapsedTime) {
-                    await new Promise(resolve => setTimeout(resolve, debounceTime - elapsedTime));
+                try {
+                    if (signal?.aborted) throw new Error("Operation aborted");
+
+                    results[i] = await asyncCallback(array[i], i, array, signal);
+
+                    const elapsedTime = Date.now() - startTime;
+                    if (debounceTime > elapsedTime) {
+                        await new Promise(resolve => setTimeout(resolve, debounceTime - elapsedTime));
+                    }
+                } catch (error) {
+                    if (signal?.aborted) {
+                        results[i] = "Aborted";
+                    } else {
+                        results[i] = `Error: ${error.message}`;
+                    }
+                } finally {
+                    active--;
+                    runTask();
                 }
-
-                active--;
-                runTask();
             })();
         }
     };
@@ -40,34 +51,42 @@ async function asyncMapWithConcurrency(array, asyncCallback, concurrency = 2, de
     });
 }
 
-async function exampleAsyncCallback(item, index) {
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
-    return `Processed ${item} at index ${index}`;
-}
 
-function promiseVersion(array, asyncCallback, concurrency, debounceTime) {
-    return asyncMapWithConcurrency(array, asyncCallback, concurrency, debounceTime);
-}
+async function exampleAsyncCallbackWithAbort(item, index, _, signal) {
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            if (signal?.aborted) {
+                reject(new Error("Operation aborted"));
+                return;
+            }
+            resolve(`Processed ${item} at index ${index}`);
+        }, Math.random() * 1000);
 
-async function asyncAwaitVersion(array, asyncCallback, concurrency, debounceTime) {
-    return asyncMapWithConcurrency(array, asyncCallback, concurrency, debounceTime);
+        if (signal) {
+            signal.addEventListener("abort", () => {
+                clearTimeout(timeoutId);
+                reject(new Error("Operation aborted"));
+            });
+        }
+    });
 }
 
 (async () => {
     const inputArray = [1, 2, 3, 4, 5];
     const concurrencyLimit = 2;
     const debounceTime = 1000;
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    promiseVersion(inputArray, exampleAsyncCallback, concurrencyLimit, debounceTime)
-        .then(result => {
-            console.log("Promise result:", result);
-        })
-        .catch(error => console.error("Error in Promise version:", error));
+    setTimeout(() => {
+        console.log("Aborting operations...");
+        controller.abort();
+    }, 1500);
 
     try {
-        const asyncAwaitResult = await asyncAwaitVersion(inputArray, exampleAsyncCallback, concurrencyLimit, debounceTime);
-        console.log("Async/await result:", asyncAwaitResult);
+        const result = await asyncMapWithAbort(inputArray, exampleAsyncCallbackWithAbort, concurrencyLimit, debounceTime, signal);
+        console.log("Result:", result);
     } catch (error) {
-        console.error("Error in Async/Await version:", error);
+        console.error("Error:", error.message);
     }
 })();
