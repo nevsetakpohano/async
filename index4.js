@@ -11,3 +11,10 @@ async function* processLargeData(dataSource, batchSize, processCallback) {
         yield await processCallback(batch);
     }
 }
+
+async function* simulateLargeDataSource(total, delay = 50) {
+    for (let i = 1; i <= total; i++) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+        yield i;
+    }
+}
