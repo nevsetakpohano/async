@@ -39,3 +39,8 @@ async function asyncMapWithConcurrency(array, asyncCallback, concurrency = 2, de
         }
     });
 }
+
+async function exampleAsyncCallback(item, index) {
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
+    return `Processed ${item} at index ${index}`;
+}
