@@ -44,3 +44,11 @@ async function exampleAsyncCallback(item, index) {
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
     return `Processed ${item} at index ${index}`;
 }
+
+function promiseVersion(array, asyncCallback, concurrency, debounceTime) {
+    return asyncMapWithConcurrency(array, asyncCallback, concurrency, debounceTime);
+}
+
+async function asyncAwaitVersion(array, asyncCallback, concurrency, debounceTime) {
+    return asyncMapWithConcurrency(array, asyncCallback, concurrency, debounceTime);
+}
