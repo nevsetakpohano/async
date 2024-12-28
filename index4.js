@@ -1,12 +1,17 @@
 async function* processLargeData(dataSource, batchSize, processCallback) {
     let batch = [];
+    let index = 0;
+
     for await (const item of dataSource) {
         batch.push(item);
+        index++;
+
         if (batch.length >= batchSize) {
             yield await processCallback(batch);
             batch = [];
         }
     }
+
     if (batch.length > 0) {
         yield await processCallback(batch);
     }
@@ -19,11 +24,13 @@ async function* simulateLargeDataSource(total, delay = 50) {
     }
 }
 
+
 async function processBatch(batch) {
     console.log(`Processing batch: [${batch.join(", ")}]`);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500)); 
     return `Processed ${batch.length} items`;
 }
+
 
 (async () => {
     const totalItems = 25;
