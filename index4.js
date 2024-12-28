@@ -7,4 +7,7 @@ async function* processLargeData(dataSource, batchSize, processCallback) {
             batch = [];
         }
     }
+    if (batch.length > 0) {
+        yield await processCallback(batch);
+    }
 }
