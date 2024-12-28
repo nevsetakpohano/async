@@ -24,3 +24,17 @@ async function processBatch(batch) {
     await new Promise(resolve => setTimeout(resolve, 500));
     return `Processed ${batch.length} items`;
 }
+
+(async () => {
+    const totalItems = 25;
+    const batchSize = 5;
+
+    console.log("Start processing large dataset...");
+    const dataSource = simulateLargeDataSource(totalItems);
+
+    for await (const result of processLargeData(dataSource, batchSize, processBatch)) {
+        console.log(result);
+    }
+
+    console.log("All data processed.");
+})();
