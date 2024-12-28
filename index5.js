@@ -7,6 +7,11 @@ class ReactiveSystem extends EventEmitter {
         this.log = [];
     }
 
+    sendMessage(target, message) {
+        this.log.push({ type: "message", target, message, timestamp: new Date() });
+        this.emit("message", { from: this.name, to: target.name, message });
+    }
+
     getLog() {
         return this.log;
     }
