@@ -18,3 +18,9 @@ async function* simulateLargeDataSource(total, delay = 50) {
         yield i;
     }
 }
+
+async function processBatch(batch) {
+    console.log(`Processing batch: [${batch.join(", ")}]`);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return `Processed ${batch.length} items`;
+}
