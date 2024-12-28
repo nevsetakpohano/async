@@ -52,3 +52,22 @@ function promiseVersion(array, asyncCallback, concurrency, debounceTime) {
 async function asyncAwaitVersion(array, asyncCallback, concurrency, debounceTime) {
     return asyncMapWithConcurrency(array, asyncCallback, concurrency, debounceTime);
 }
+
+(async () => {
+    const inputArray = [1, 2, 3, 4, 5];
+    const concurrencyLimit = 2; 
+    const debounceTime = 1000;
+
+    promiseVersion(inputArray, exampleAsyncCallback, concurrencyLimit, debounceTime)
+        .then(result => {
+            console.log("Promise result:", result);
+        })
+        .catch(error => console.error("Error in Promise version:", error));
+
+    try {
+        const asyncAwaitResult = await asyncAwaitVersion(inputArray, exampleAsyncCallback, concurrencyLimit, debounceTime);
+        console.log("Async/await result:", asyncAwaitResult);
+    } catch (error) {
+        console.error("Error in Async/Await version:", error);
+    }
+})();
