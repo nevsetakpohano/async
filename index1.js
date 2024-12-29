@@ -1,10 +1,10 @@
-function asyncMap(array, asyncCallback, debounceTime = 0) {
+function asyncMap(array, asyncCallback, debounceTime = 0, finalCallback) {
     const results = [];
     let index = 0;
 
     function processNext() {
         if (index >= array.length) {
-            console.log("Final Results:", results);
+            if (finalCallback) finalCallback(results);
             return;
         }
 
@@ -40,4 +40,11 @@ const inputArray = [1, 2, 3, 4, 5];
 const testTime = 1000;
 
 console.log("Without Debounce");
-asyncMap(inputArray, exampleAsyncCallback, 0);
+asyncMap(inputArray, exampleAsyncCallback, 0, (resultWithoutDebounce) => {
+    console.log("Result without debounce:", resultWithoutDebounce);
+
+    console.log(`With Debounce (${testTime}ms)`);
+    asyncMap(inputArray, exampleAsyncCallback, testTime, (resultWithDebounce) => {
+        console.log("Result with debounce:", resultWithDebounce);
+    });
+});
