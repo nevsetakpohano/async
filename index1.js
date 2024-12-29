@@ -1,34 +1,43 @@
-async function asyncMap(array, asyncCallback, debounceTime = 0) {
+function asyncMap(array, asyncCallback, debounceTime = 0) {
     const results = [];
-    for (let i = 0; i < array.length; i++) {
-        const startTime = Date.now();
-        const result = await asyncCallback(array[i], i, array);
-        const elapsed = Date.now() - startTime;
+    let index = 0;
 
-        if (debounceTime > elapsed) {
-            await new Promise(resolve => setTimeout(resolve, debounceTime - elapsed));
+    function processNext() {
+        if (index >= array.length) {
+            console.log("Final Results:", results);
+            return;
         }
 
-        results.push(result);
+        const startTime = Date.now();
+        asyncCallback(array[index], index, array, (result) => {
+            const elapsed = Date.now() - startTime;
+            results.push(result);
+
+            if (debounceTime > elapsed) {
+                const delay = debounceTime - elapsed;
+                setTimeout(() => {
+                    index++;
+                    processNext();
+                }, delay);
+            } else {
+                index++;
+                processNext();
+            }
+        });
     }
-    return results;
+
+    processNext();
 }
 
-async function exampleAsyncCallback(item, index) {
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
-    return `Processed ${item} at index ${index}`;
+function exampleAsyncCallback(item, index, array, callback) {
+    const delay = Math.random() * 1000;
+    setTimeout(() => {
+        callback(`Processed ${item} at index ${index}`);
+    }, delay);
 }
 
-(async () => {
-    const inputArray = [1, 2, 3, 4, 5];
-    const testTime = 1000;
-    
-    console.log("Without Debounce");
-    const resultWithoutDebounce = await asyncMap(inputArray, exampleAsyncCallback);
-    console.log("Result without debounce:",resultWithoutDebounce);
+const inputArray = [1, 2, 3, 4, 5];
+const testTime = 1000;
 
-    console.log(`With Debounce (${testTime}ms)`);
-    const resultWithDebounce = await asyncMap(inputArray, exampleAsyncCallback, testTime);
-    console.log("Result with debounce:", resultWithDebounce);
-
-})();
+console.log("Without Debounce");
+asyncMap(inputArray, exampleAsyncCallback, 0);
